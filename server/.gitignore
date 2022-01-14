@@ -1,0 +1,5 @@
+.history/
+node_modules/
+client/node_modules/
+.env
+client/android/app/build
