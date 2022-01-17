@@ -10,15 +10,20 @@ const checkIdMiddleware = require("../middlewares/check-id-middleware");
 const router = new Router();
 router.post(
   "/registration",
-  body("email").notEmpty(),
-  body("password").notEmpty(),
+  body("email").isEmail(),
+  body("password").isLength({ min: 6, max: 32 }),
   userController.registration
 );
-router.post("/login", userController.login);
+router.post(
+  "/login",
+  body("email").isEmail(),
+  body("password").isLength({ min: 6, max: 32 }),
+  userController.login
+);
 router.get("/activate/:link", userController.activate);
 
-router.post("/logout", userController.logout);
-router.post("/refresh", userController.refresh);
+router.get("/logout", userController.logout);
+router.get("/refresh", userController.refresh);
 router.get("/users", authMiddleware, userController.getUsers);
 router.patch(
   "/user/:id",

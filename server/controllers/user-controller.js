@@ -23,6 +23,7 @@ class UserController {
       next(e);
     }
   }
+
   async login(req, res, next) {
     try {
       const errors = validationResult(req);
@@ -32,7 +33,11 @@ class UserController {
         );
       }
       const { email, password } = req.body;
-      const userData = await userService.login(phone, hash, otp);
+      const userData = await userService.login(email, password);
+      res.cookie("refreshToken", userData.refreshToken, {
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+      });
       return res.json(userData);
     } catch (e) {
       next(e);
@@ -40,10 +45,10 @@ class UserController {
   }
   async logout(req, res, next) {
     try {
-      const { refreshToken } = req.body;
-      console.log("req.body", req.body);
-
+      console.log(req);
+      const { refreshToken } = req.cookies;
       const token = await userService.logout(refreshToken);
+      res.clearCookie("refreshToken");
       return res.json(token);
     } catch (e) {
       next(e);
@@ -51,8 +56,13 @@ class UserController {
   }
   async refresh(req, res, next) {
     try {
-      const { refreshToken } = req.body;
+      const { refreshToken } = req.cookies;
+      console.log("refreshToken", refreshToken, req.cookies);
       const userData = await userService.refresh(refreshToken); // ...tokens, user: userDto
+      res.cookie("refreshToken", userData.refreshToken, {
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+      });
       return res.json(userData);
     } catch (e) {
       next(e);
@@ -89,7 +99,12 @@ class UserController {
   }
   async activate(req, res, next) {
     try {
-    } catch (e) {}
+      const activationLink = req.params.link;
+      await userService.activate(activationLink);
+      res.redirect(process.env.CLIENT_URL);
+    } catch (e) {
+      next(e);
+    }
   }
 }
 

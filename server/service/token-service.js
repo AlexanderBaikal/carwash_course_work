@@ -34,17 +34,17 @@ class TokenService {
   }
 
   async findToken(refreshToken) {
-    const tokenData = await Token.findOne({ refreshToken });
+    const tokenData = await Token.findOne({ where: { refreshToken } });
     return tokenData;
   }
 
   async saveToken(userId, refreshToken) {
     // Сохраняем refresh в DB для конкретного пользователя
     const tokenData = await Token.findOne({ where: { user: userId } });
+
     // Нельзя зайти в аккаунт с 2 устройств одновременно !
     if (tokenData) {
-      tokenData.refreshToken = refreshToken;
-      return tokenData.save();
+      return tokenData.update({ refreshToken });
     }
     // Условие не выполнилось => пользователь логинится первый раз
     const token = await Token.create({ user: userId, refreshToken });

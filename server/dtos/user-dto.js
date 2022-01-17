@@ -21,9 +21,8 @@ class UserDto {
 class UserLiteDto {
   phone;
   id;
-
   constructor(model) {
-    this.phone = model.getDataValue("phone");
+    this.email = model.getDataValue("email");
     this.id = model.getDataValue("id");
   }
 }

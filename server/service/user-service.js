@@ -11,28 +11,46 @@ const uuid = require("uuid");
 class UserService {
   async registration(email, password) {
     const candidate = await User.findOne({ where: { email } });
-    console.log(candidate);
     if (candidate) {
-      throw Error(`Пользователь с почитовым адресом ${email} уже существует`);
+      throw ApiError.BadRequest(
+        `Пользователь с почитовым адресом ${email} уже существует`
+      );
     }
     const hashPassword = await bcrypt.hash(password, 3);
-    const activationLink = `${process.env.API_URL}/api/activate/${uuid.v4()}`;
+    const activationLink = uuid.v4();
     const user = await User.create({
       email,
       password: hashPassword,
       activationLink,
     });
-    await mailService.sendActivationMail(email, activationLink);
-    const userDto = new UserDto(user);
-    const tokens = tokenService.generateTokens({ ...userDto });
-    tokenService.saveToken(user.id, tokens.refreshToken);
-    return {
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-    };
+    await mailService.sendActivationMail(
+      email,
+      `${process.env.API_URL}/api/activate/${activationLink}`
+    );
+    return await this.getUserDataWithToken(user);
   }
 
-  async verifyOtp(phone, hash, otp) {}
+  async activate(activationLink) {
+    const user = await User.findOne({ where: { activationLink } });
+    if (!user) {
+      throw ApiError.BadRequest("Пользователь не найден");
+    }
+    await user.update({ isActivated: true });
+  }
+
+  async login(email, password) {
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      throw ApiError.BadRequest(
+        `Пользователь с почтовым адресом ${email} не найден`
+      );
+    }
+    const isPassEquals = await bcrypt.compare(password, user.password);
+    if (!isPassEquals) {
+      throw ApiError.BadRequest(`Неверный пароль`);
+    }
+    return await this.getUserDataWithToken(user);
+  }
 
   async logout(refreshToken) {
     const token = await tokenService.removeToken(refreshToken);
@@ -51,15 +69,15 @@ class UserService {
       throw ApiError.UnauthorizedError();
     }
     // ищем пользователя в БД
-    let user = await User.findOne({ where: { id: userData.id } });
-    return this.getUserDataWithToken(user, userData.phone);
+    let user = await User.findOne({ where: { email: userData.email } });
+    return await this.getUserDataWithToken(user);
   }
 
-  async getUserDataWithToken(user, phone) {
+  async getUserDataWithToken(user) {
     let cars;
     // Если не нашли пользователя в БД
     if (!user) {
-      user = await User.create({ phone });
+      throw Error("Пользователь не найден");
     } else {
       cars = await sequelize.query(
         'SELECT cars.id, cars.brand, cars.model, cars."regNumber", transport_types.name as "transportType"\
@@ -89,16 +107,7 @@ class UserService {
       { firstName, lastName, middleName, gender },
       { where: { id } }
     );
-
-    return await User.findOne({ where: { id } });
-  }
-
-  async getNotifications(userId) {
-    const result = await Notification.findAll({
-      where: { userId },
-      include: [{ model: NotificationType, attributes: ["name"] }],
-    });
-    return result;
+    return await this.getUserDataWithToken(user);
   }
 }
 

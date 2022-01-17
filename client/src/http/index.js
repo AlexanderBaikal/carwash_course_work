@@ -1,18 +1,12 @@
 import axios from "axios";
-import { AuthResponse } from "../models/response/AuthResponse";
-import { getData, storeData } from "../utils/asyncStorage";
 
 export const API_URL = "http://192.168.1.52:5000/api";
 export const BASE_URL = "http://192.168.1.52:5000";
 
-const $api = axios.create({ baseURL: API_URL });
+const $api = axios.create({ baseURL: API_URL, withCredentials: true });
 
 $api.interceptors.request.use(async (config) => {
-  const userData = await getData("userData");
-  if (userData) {
-    const { accessToken } = JSON.parse(userData);
-    config.headers.Authorization = `Bearer ${accessToken}`;
-  }
+  config.headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
   return config;
 });
 
@@ -29,19 +23,15 @@ $api.interceptors.response.use(
     ) {
       originalRequest._isRetry = true;
       try {
-        const { refreshToken } = JSON.parse(await getData("userData"));
-        const response =
-          (await axios.post) <
-          AuthResponse >
-          (`${API_URL}/refresh`,
-          {
-            refreshToken,
-          });
-        await storeData("userData", JSON.stringify(response.data));
+        const response = await axios.get(`${API_URL}/refresh`, {
+          withCredentials: true,
+        });
+        localStorage.setItem("token", response.data.accessToken);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
         return $api.request(originalRequest);
       } catch (e) {
         console.log(
-          "! Пользователь не авторизован",
+          "Пользователь не авторизован",
           e.response?.data || e.message
         );
       }
