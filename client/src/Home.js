@@ -10,9 +10,14 @@ import {
   TextField,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { getOrgInfo, getPriceList } from "./redux/actions/organizationAction";
+import {
+  getCompanyOrgs,
+  getOrgInfo,
+  getPriceList,
+} from "./redux/actions/organizationAction";
 import {
   addReservation,
+  deleteReservation,
   getDayReservations,
   getUserReservations,
 } from "./redux/actions/reservationAction";
@@ -22,6 +27,7 @@ import {
   setSelectedCarId,
   setSelectedServices,
 } from "./redux/actions/recordAction";
+import ProfileForm from "./ProfileForm";
 
 const styles = {
   mv: {
@@ -81,6 +87,31 @@ const getCarInfo = (item) => {
 
 const weekdays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
+const months = {
+  1: "Январь",
+  2: "Февраль",
+  3: "Март",
+  4: "Апрель",
+  5: "Май",
+  6: "Июнь",
+  7: "Июль",
+  8: "Август",
+  9: "Сентябрь",
+  10: "Октябрь",
+  11: "Ноябрь",
+  12: "Декабрь",
+};
+
+const getDate = (srcDate) => {
+  let date = new Date(srcDate);
+  let h = date.getHours();
+  let m = date.getMinutes().toString();
+  m = m === "0" ? "00" : m;
+  return `${date.getDate()} ${
+    months[date.getMonth() + 1]
+  } ${date.getFullYear()} | ${h}:${m}`;
+};
+
 const getDayIndex = (reservations, editableReservationId) => {
   if (reservations[editableReservationId]) {
     const selectedDate = new Date(reservations[editableReservationId].date);
@@ -120,6 +151,7 @@ const Home = () => {
   const priceList = useSelector((state) => state.organization.priceList);
   const loading = useSelector((state) => state.reservations.loading);
   const reservations = useSelector((state) => state.reservations.reservations);
+  const companyOrgs = useSelector((state) => state.organization.companyOrgs);
   const editableReservationId = useSelector(
     (state) => state.reservations.editableReservationId
   );
@@ -127,21 +159,25 @@ const Home = () => {
     (state) => state.record.selectedServices
   );
 
-  const selectedOrgId = useSelector((state) => state.record.selectedOrgId);
   const dayReservations = useSelector(
     (state) => state.reservations.dayReservations
   );
 
+  const userId = JSON.parse(localStorage.getItem("user"))?.id;
+
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(getOrgInfo(1));
-    dispatch(getUserReservations(1));
+    dispatch(getUserReservations(userId));
+    dispatch(getCompanyOrgs(1));
   }, []);
 
   const info = useSelector((state) => state.organization.info);
   const [addTransport, setAddTransport] = useState(false);
+  const [editProfile, setEditProfile] = useState(false);
   const [editTransportId, setEditTransportId] = useState(-1);
   const [selectedCarIndex, setSelectedCarIndex] = useState(0);
+  const [selectedOrgIndex, setSelectedOrgIndex] = useState(0);
 
   useEffect(() => {
     dispatch(getPriceList(1, user?.cars?.[selectedCarIndex]?.transportType));
@@ -160,18 +196,19 @@ const Home = () => {
     if (
       !calendarray ||
       !calendarray[selectedDay] ||
-      !calendarray[selectedDay]?.year
+      !calendarray[selectedDay]?.year ||
+      !companyOrgs?.[selectedOrgIndex]
     )
       return;
     dispatch(
       getDayReservations({
-        orgId: selectedOrgId,
+        orgId: companyOrgs[selectedOrgIndex]?.id,
         year: calendarray[selectedDay]?.year,
         month: calendarray[selectedDay]?.month,
         day: calendarray[selectedDay]?.date,
       })
     );
-  }, [selectedDay, calendarray]);
+  }, [selectedDay, calendarray, selectedOrgIndex, companyOrgs]);
 
   const onDayPress = (date, idx) => {
     if (idx >= 2) setSelectedDay(idx);
@@ -193,10 +230,20 @@ const Home = () => {
       ...calendarray[selectedDay],
       hour: 8 + selectedHour,
     };
-    const dt = new Date(year, month - 1, date, hour + 8);
+    const dt = new Date(year, month - 1, date, hour);
     dispatch(
-      addReservation({ orgId: 1, date: dt, services: selectedServices, carId })
+      addReservation({
+        orgId: 1,
+        date: dt,
+        services: selectedServices,
+        carId,
+        userId: JSON.parse(localStorage.getItem("user"))?.id,
+      })
     );
+  };
+
+  const removeReservation = (reservId) => {
+    dispatch(deleteReservation({ orgId: 1, reservId }));
   };
 
   return (
@@ -228,12 +275,12 @@ const Home = () => {
         </Typography>
         <div style={{ marginTop: "10px", marginBottom: "10px" }}>
           {info?.addresses?.map((item, idx) => (
-            <Typography key={idx}>{item}</Typography>
+            <Typography key={idx}>{item.address}</Typography>
           ))}
         </div>
         <div style={{ marginTop: "10px", marginBottom: "10px" }}>
           {info?.phones?.map((item, idx) => (
-            <Typography key={idx}>{item}</Typography>
+            <Typography key={idx}>{item.phone}</Typography>
           ))}
         </div>
         <div
@@ -241,17 +288,35 @@ const Home = () => {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            width: "100%",
           }}
         >
-          <Typography>{"Активные заказы"}</Typography>
+          <Typography style={styles.mv} variant="h5">
+            {"Активные заказы"}
+          </Typography>
           {!reservations?.length ? (
             <Typography>{"У вас пока нет активных заказов"}</Typography>
           ) : null}
-          <div>
+          <div style={{ width: "100%" }}>
             {reservations?.map((item, idx) => (
-              <Card key={item.id}>
-                <CardContent>{JSON.stringify(item)}</CardContent>
-              </Card>
+              <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+                <Card key={item.id}>
+                  <CardContent>
+                    <Typography>{item.sname}</Typography>
+                    <Typography>{item.price + " рублей"}</Typography>
+                    <Typography>{item.name}</Typography>
+                    <Typography>{getDate(item.date)}</Typography>
+                    <Typography>{getCarInfo(item)}</Typography>
+                    <Button
+                      color="warning"
+                      style={{ padding: 0, marginTop: "10px" }}
+                      onClick={() => removeReservation(item.id)}
+                    >
+                      Удалить
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             ))}
           </div>
         </div>
@@ -267,6 +332,18 @@ const Home = () => {
           <Typography style={styles.mv} variant="h5">
             Записаться на услуги
           </Typography>
+          <Typography style={styles.mv}>
+            Выберите автомоечный комплекс
+          </Typography>
+          <Select
+            value={selectedOrgIndex}
+            onChange={(e) => setSelectedOrgIndex(e.target.value)}
+            style={{ ...styles.mv, width: "100%" }}
+          >
+            {companyOrgs?.map((item, idx) => (
+              <MenuItem value={idx}>{item.name}</MenuItem>
+            ))}
+          </Select>
           <Typography style={styles.mv}>Выберите транспорт</Typography>
           <Select
             value={selectedCarIndex}
@@ -399,18 +476,18 @@ const Home = () => {
                     style={{
                       ...styles.text1,
                       textDecorationLine:
-                        (dayReservations.filter((item) => item.hour == 8 + idx)
+                        (dayReservations.filter((item) => item.hour == idx)
                           .length ||
-                          (8 + idx <= new Date().getHours() &&
+                          (idx + 8 <= new Date().getHours() &&
                             selectedDay === 2)) &&
                         getHourIndex(reservations, editableReservationId) !==
                           idx
                           ? "line-through"
                           : "none",
                       color:
-                        (dayReservations.filter((item) => item.hour == 8 + idx)
+                        (dayReservations.filter((item) => item.hour == idx)
                           .length ||
-                          (8 + idx <= new Date().getHours() &&
+                          (idx + 8 <= new Date().getHours() &&
                             selectedDay === 2)) &&
                         getHourIndex(reservations, editableReservationId) !==
                           idx
@@ -445,6 +522,36 @@ const Home = () => {
           }}
         >
           <Typography style={styles.mv} variant="h5">
+            {"Мой профиль"}
+          </Typography>
+          <Typography style={styles.mv}>
+            {user?.info?.lastName &&
+            user?.info?.firstName &&
+            user?.info?.middleName
+              ? user?.info?.lastName +
+                " " +
+                user?.info?.firstName +
+                " " +
+                user?.info?.middleName
+              : "Имя не указано"}
+          </Typography>
+          <Button
+            style={styles.mv}
+            onClick={() => setEditProfile((v) => !v)}
+            variant="contained"
+          >
+            Редактировать
+          </Button>
+          {editProfile ? (
+            <ProfileForm
+              initFirstName={user?.info?.firstName}
+              initLastName={user?.info?.lastName}
+              initMiddleName={user?.info?.middleName}
+              initGender={user?.info?.gender}
+              setEditProfile={setEditProfile}
+            />
+          ) : null}
+          <Typography style={styles.mv} variant="h5">
             {"Мой транспорт"}
           </Typography>
           {!user?.cars?.length ? (
@@ -469,7 +576,12 @@ const Home = () => {
                   <Button
                     color="warning"
                     onClick={() => {
-                      dispatch(deleteTransport(item.id));
+                      dispatch(
+                        deleteTransport({
+                          carId: item.id,
+                          userId: user?.id,
+                        })
+                      );
                     }}
                   >
                     Удалить

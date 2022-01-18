@@ -29,7 +29,7 @@ const Modal = () => {
     <Slide direction="down" in={modalVisible} mountOnEnter unmountOnExit>
       <Card
         sx={{ minWidth: 275 }}
-        style={{ position: "absolute", marginTop: "30px", zIndex: 10 }}
+        style={{ position: "fixed", marginTop: "30px", zIndex: 10 }}
       >
         <CardContent>
           <div

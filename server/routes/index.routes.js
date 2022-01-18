@@ -6,6 +6,7 @@ const transportController = require("../controllers/transport-controller");
 const userController = require("../controllers/user-controller");
 const authMiddleware = require("../middlewares/auth-middleware");
 const checkIdMiddleware = require("../middlewares/check-id-middleware");
+const checkRoleMiddleware = require("../middlewares/check-role-middleware");
 
 const router = new Router();
 router.post(
@@ -24,7 +25,24 @@ router.get("/activate/:link", userController.activate);
 
 router.get("/logout", userController.logout);
 router.get("/refresh", userController.refresh);
-router.get("/users", authMiddleware, userController.getUsers);
+router.get(
+  "/users",
+  authMiddleware,
+  checkRoleMiddleware("ADMIN"),
+  userController.getUsers
+);
+router.get(
+  "/users/:id",
+  authMiddleware,
+  checkIdMiddleware(),
+  userController.getUserInfo
+);
+router.patch(
+  "/users/:userId/role",
+  authMiddleware,
+  checkRoleMiddleware("ADMIN"),
+  userController.updateUserRole
+);
 router.patch(
   "/user/:id",
   body("firstName").notEmpty(),
@@ -65,7 +83,7 @@ router.delete(
 );
 
 router.get(
-  "/user/:userId/organization/:orgId/reservations",
+  "/user/:userId/reservations",
   authMiddleware,
   checkIdMiddleware((req) => req.params.userId),
   reservationController.getUserReservations
@@ -79,6 +97,12 @@ router.get(
 );
 
 router.get("/organization/:orgId/info", organizationController.getOrgInfo);
+
+router.patch(
+  "/organization/:orgId/info",
+  param("year").isInt(),
+  organizationController.updateOrgInfo
+);
 
 router.get(
   "/organization/:orgId/reservations/:year/:month/:day",
@@ -119,5 +143,7 @@ router.delete(
   checkIdMiddleware((req) => req.params.userId),
   reservationController.deleteReservation
 );
+
+router.get("/organizations", organizationController.getCompanyOrgs);
 
 module.exports = router;

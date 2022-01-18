@@ -2,8 +2,8 @@ import { AxiosResponse } from "axios";
 import $api from "../http";
 
 export default class ReservationService {
-  static async getUserReservations(orgId, userId) {
-    return $api.get(`/user/${userId}/organization/${orgId}/reservations`);
+  static async getUserReservations(userId) {
+    return $api.get(`/user/${userId}/reservations`);
   }
   static async getDayReservations(orgId, year, month, day) {
     return $api.get(

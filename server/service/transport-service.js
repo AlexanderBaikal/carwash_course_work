@@ -2,7 +2,7 @@ const { QueryTypes } = require("sequelize/dist");
 const sequelize = require("../db");
 const { UserDto } = require("../dtos/user-dto");
 const ApiError = require("../exceptions/api-error");
-const { Car, TransportType, User } = require("../models/models");
+const { Car, TransportType, User, Reservation } = require("../models/models");
 const userService = require("./user-service");
 
 class TransportService {
@@ -47,6 +47,12 @@ class TransportService {
       where: {
         userId,
         id: carId,
+      },
+    });
+    await Reservation.destroy({
+      where: {
+        carId,
+        userId,
       },
     });
 

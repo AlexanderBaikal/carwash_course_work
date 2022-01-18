@@ -2,6 +2,7 @@ import { Button, Input, MenuItem, Select, TextField } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { addTransport, updateTransport } from "./redux/actions/authAction";
+import UserService from "./services/UserServices";
 
 const styles = {
   input: {
@@ -30,6 +31,7 @@ const TransportForm = ({
   setAddTransport,
   id = -1,
   setEditTransportId,
+  userId = -1,
 }) => {
   const [errors, setErrors] = useState(false);
   const [brand, setBrand] = useState(initBrand);
@@ -47,12 +49,18 @@ const TransportForm = ({
   }, [brand, model, regNumber]);
 
   const submit = () => {
+    console.log("submo-it", JSON.parse(localStorage.getItem("user")).id);
+
     if (errors) {
       return;
     }
     if (id !== -1) {
       dispatch(
         updateTransport({
+          userId:
+            userId === -1
+              ? JSON.parse(localStorage.getItem("user")).id
+              : userId,
           carId: id,
           brand,
           model,
@@ -64,12 +72,17 @@ const TransportForm = ({
     } else {
       dispatch(
         addTransport({
+          userId:
+            userId === -1
+              ? JSON.parse(localStorage.getItem("user")).id
+              : userId,
           brand,
           model,
           regNumber,
           transportType: type,
         })
       );
+      if (userId !== -1) dispatch(UserService.getUserInfo(userId));
       setAddTransport(false);
     }
   };

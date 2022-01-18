@@ -23,6 +23,7 @@ import {
   UPDATE_RESERVATION_FAIL,
   UPDATE_RESERVATION_SUCCESS,
 } from "../redux/actions/reservationAction";
+import UserService from "../services/UserServices";
 
 export default (store) => (next) => (action) => {
   next(action);

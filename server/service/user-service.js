@@ -107,6 +107,17 @@ class UserService {
       { firstName, lastName, middleName, gender },
       { where: { id } }
     );
+    const user = await User.findOne({ where: { id } });
+    return await this.getUserDataWithToken(user);
+  }
+
+  async updateUserRole(id, role) {
+    await User.update({ role }, { where: { id } });
+    return await this.getAllUsers();
+  }
+
+  async getUserInfo(id) {
+    const user = await User.findOne({ where: { id } });
     return await this.getUserDataWithToken(user);
   }
 }

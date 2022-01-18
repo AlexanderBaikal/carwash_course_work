@@ -71,96 +71,103 @@ import {
 } from "./actions/organizationAction";
 import { setActiveCarId } from "./actions/transportAction";
 import AuthService from "../services/AuthService";
-// import { push } from "react-router-redux";
 import { API_URL } from "./../http/index";
+import {
+  getAllUsersFail,
+  getAllUsersRequest,
+  getAllUsersSuccess,
+  GET_ALL_USERS,
+  updateUserRoleFail,
+  updateUserRoleRequest,
+  updateUserRoleSuccess,
+  UPDATE_USER_ROLE,
+} from "./actions/adminAction";
+import AdminService from "../services/AdminService";
 
-// async function deleteReservation(data) {
-//   const { orgId, reservId } = data;
+// ----------------------
 
-//   const userData = await getData("userData");
-//   if (!userData) {
-//     throw Error("Вы итак не авторизованы");
-//   }
+async function updateUserRole(payload) {
+  const [userId, role] = payload;
+  const response = await AdminService.updateUserRole(userId, role);
+  return response.data;
+}
 
-//   const { accessToken, user } = JSON.parse(userData);
+function* workerUpdateUserRole(action) {
+  try {
+    yield put(updateUserRoleRequest());
+    const data = yield call(updateUserRole, action.payload);
+    yield put(updateUserRoleSuccess(data));
+  } catch (error) {
+    console.log(error.response?.data?.message || error);
+    yield put(updateUserRoleFail(error.response?.data?.message || error));
+  }
+}
 
-//   const response = await ReservationService.deleteReservation({
-//     reservId,
-//     orgId,
-//     userId: user.id,
-//   });
+export function* watchUpdateUserRole() {
+  yield takeEvery(UPDATE_USER_ROLE, workerUpdateUserRole);
+}
 
-//   return response.data;
-// }
+// ----------------------------
 
-// function* workerDeleteReservation(action) {
-//   try {
-//     yield put(deleteReservationRequest());
-//     const data = yield call(deleteReservation, action.payload);
-//     yield put(deleteReservationSuccess(data));
-//   } catch (error) {
-//     console.log(error.response?.data?.message || error);
-//     alert(error.response?.data?.message || error.message);
-//     yield put(deleteReservationFail(error.response?.data?.message || error));
-//   }
-// }
-
-// export function* watchDeleteReservation() {
-//   yield takeEvery(DELETE_RESERVATION, workerDeleteReservation);
-// }
-
-// // ----------------------------
-
-// async function updateReservation(data) {
-//   const { orgId, date, services, carId, reservId } = data;
-
-//   const userData = await getData("userData");
-//   if (!userData) {
-//     throw Error("Вы итак не авторизованы");
-//   }
-
-//   const { accessToken, user } = JSON.parse(userData);
-
-//   const response = await ReservationService.updateReservation({
-//     reservId,
-//     orgId,
-//     userId: user.id,
-//     date,
-//     services,
-//     carId,
-//   });
-
-//   return response.data;
-// }
-
-// function* workerUpdateReservation(action) {
-//   try {
-//     yield put(updateReservationRequest());
-//     const data = yield call(updateReservation, action.payload);
-//     // navigationRef.navigate("Settings_CarList");
-//     yield put(updateReservationSuccess(data));
-//     // navigationRef.navigate('Home_Home');
-//   } catch (error) {
-//     console.log(error.response?.data?.message || error);
-//     alert(error.response?.data?.message || error.message);
-//     yield put(updateReservationFail(error.response?.data?.message || error));
-//   }
-// }
-
-// export function* watchUpdateReservation() {
-//   yield takeEvery(UPDATE_RESERVATION, workerUpdateReservation);
-// }
-
-// // ----------------------------
-
-async function addReservation(data) {
-  const { orgId, date, services, carId } = data;
+async function deleteReservation(data) {
+  const { orgId, reservId } = data;
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-  const response = await ReservationService.addReservation({
+  const response = await ReservationService.deleteReservation({
+    reservId,
     orgId,
     userId: user.id,
+  });
+
+  return response.data;
+}
+
+function* workerDeleteReservation(action) {
+  try {
+    yield put(deleteReservationRequest());
+    const data = yield call(deleteReservation, action.payload);
+    yield put(deleteReservationSuccess(data));
+  } catch (error) {
+    console.log(error.response?.data?.message || error);
+    yield put(deleteReservationFail(error.response?.data?.message || error));
+  }
+}
+
+export function* watchDeleteReservation() {
+  yield takeEvery(DELETE_RESERVATION, workerDeleteReservation);
+}
+
+// ----------------------
+
+async function getAllUsers() {
+  const response = await AdminService.getAllUsers();
+  return response.data;
+}
+
+function* workerGetAllUsers(action) {
+  try {
+    yield put(getAllUsersRequest());
+    const data = yield call(getAllUsers);
+    yield put(getAllUsersSuccess(data));
+  } catch (error) {
+    console.log(error.response?.data?.message || error);
+    yield put(getAllUsersFail(error.response?.data?.message || error));
+  }
+}
+
+export function* watchGetAllUsers() {
+  yield takeEvery(GET_ALL_USERS, workerGetAllUsers);
+}
+
+// ----------------------------
+
+async function addReservation(data) {
+  const { orgId, date, services, carId, userId } = data;
+
+  const response = await ReservationService.addReservation({
+    orgId,
+    userId,
     date,
     services,
     carId,
@@ -176,7 +183,6 @@ function* workerAddReservation(action) {
     yield put(addReservationSuccess(data));
   } catch (error) {
     console.log(error.response?.data?.message || error);
-    alert(error.response?.data?.message || error.message);
     yield put(addReservationFail(error.response?.data?.message || error));
   }
 }
@@ -189,6 +195,7 @@ export function* watchAddReservation() {
 
 async function getDayReservations(data) {
   const { orgId, year, month, day } = data;
+  console.log(data);
 
   const response = await ReservationService.getDayReservations(
     orgId,
@@ -199,46 +206,44 @@ async function getDayReservations(data) {
   return response.data;
 }
 
-function* workergetDayReservations(action) {
+function* workerGetDayReservations(action) {
   try {
     yield put(getDayReservationsRequest());
     const reservations = yield call(getDayReservations, action.payload);
     yield put(getDayReservationsSuccess(reservations));
   } catch (error) {
-    alert(error.response?.data?.message || error.message);
     console.log(error.response?.data?.message || error);
     yield put(getDayReservationsFail(error.response?.data?.message || error));
   }
 }
 
 export function* watchgetDayReservations() {
-  yield takeEvery(GET_DAY_RESERVATIONS, workergetDayReservations);
+  yield takeEvery(GET_DAY_RESERVATIONS, workerGetDayReservations);
 }
 
 // ----------------------------
 
-// async function getCompanyOrgs(companyId) {
-//   const response = await OrgService.getCompanyOrgs(companyId);
-//   return response.data;
-// }
+async function getCompanyOrgs() {
+  const response = await OrgService.getCompanyOrgs();
+  return response.data;
+}
 
-// function* workerGetCompanyOrgs(action) {
-//   try {
-//     yield put(getCompanyOrgsRequest());
-//     const orgs = yield call(getCompanyOrgs, action.payload);
-//     yield put(getCompanyOrgsSuccess(orgs));
-//   } catch (error) {
-//     alert(error.response?.data?.message || error.message);
-//     console.log(error.response?.data?.message || error);
-//     yield put(getCompanyOrgsFail(error.response?.data?.message || error));
-//   }
-// }
+function* workerGetCompanyOrgs(action) {
+  try {
+    yield put(getCompanyOrgsRequest());
+    const orgs = yield call(getCompanyOrgs, action.payload);
+    yield put(getCompanyOrgsSuccess(orgs));
+  } catch (error) {
+    console.log(error.response?.data?.message || error);
+    yield put(getCompanyOrgsFail(error.response?.data?.message || error));
+  }
+}
 
-// export function* watchGetCompanyOrgs() {
-//   yield takeEvery(GET_COMPANY_ORGS, workerGetCompanyOrgs);
-// }
+export function* watchGetCompanyOrgs() {
+  yield takeEvery(GET_COMPANY_ORGS, workerGetCompanyOrgs);
+}
 
-// // ----------------------------
+// ----------------------------
 
 async function getPriceList({ orgId, transportTypeName }) {
   const response = await OrgService.getPriceList(orgId, transportTypeName);
@@ -251,7 +256,6 @@ function* workerGetPriceList(action) {
     const info = yield call(getPriceList, action.payload);
     yield put(getPriceListSuccess(info));
   } catch (error) {
-    alert(error.response?.data?.message || error.message);
     console.log(error.response?.data?.message || error);
     yield put(getPriceListFail(error.response?.data?.message || error));
   }
@@ -285,10 +289,8 @@ export function* watchGetOrgInfo() {
 
 // // ----------------------------
 
-async function getUserReservations(orgId) {
-  const user = JSON.parse(localStorage.getItem("user"));
-  console.log(localStorage.getItem("user"));
-  const response = await ReservationService.getUserReservations(orgId, user.id);
+async function getUserReservations(userId) {
+  const response = await ReservationService.getUserReservations(userId);
   return response.data;
 }
 
@@ -309,11 +311,11 @@ export function* watchgetUserReservations() {
 
 // -----------
 
-async function deleteTransport(carId) {
-  const user = JSON.parse(localStorage.getItem("user"));
+async function deleteTransport({ carId, userId }) {
+  // const user = JSON.parse(localStorage.getItem("user"));
 
   const response = await TransportService.deleteTransport({
-    userId: user.id,
+    userId,
     carId,
   });
 
@@ -339,12 +341,12 @@ export function* watchDeleteTransport() {
 // ----------------------------
 
 async function updateTransport(data) {
-  const { brand, model, regNumber, transportType, carId } = data;
+  const { brand, model, regNumber, transportType, carId, userId } = data;
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  // const user = JSON.parse(localStorage.getItem("user"));
 
   const response = await TransportService.updateTransport({
-    userId: user.id,
+    userId,
     brand,
     model,
     regNumber,
@@ -374,12 +376,12 @@ export function* watchUpdateTransport() {
 // ----------------------------
 
 async function addTransport(data) {
-  const { brand, model, regNumber, transportType } = data;
+  const { brand, model, regNumber, transportType, userId } = data;
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  // const user = JSON.parse(localStorage.getItem("user"));
 
   const response = await TransportService.addTransport({
-    userId: user.id,
+    userId,
     brand,
     model,
     regNumber,
@@ -521,10 +523,11 @@ export function* rootSaga() {
     fork(watchgetUserReservations),
     fork(watchGetOrgInfo),
     fork(watchGetPriceList),
-    // fork(watchGetCompanyOrgs),
+    fork(watchGetCompanyOrgs),
     fork(watchgetDayReservations),
     fork(watchAddReservation),
-    // fork(watchUpdateReservation),
-    // fork(watchDeleteReservation),
+    fork(watchDeleteReservation),
+    fork(watchGetAllUsers),
+    fork(watchUpdateUserRole),
   ]);
 }

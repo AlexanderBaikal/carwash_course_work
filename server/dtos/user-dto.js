@@ -15,15 +15,18 @@ class UserDto {
       gender: model.gender,
     };
     this.cars = cars;
+    this.role = model.getDataValue("role");
   }
 }
 
 class UserLiteDto {
-  phone;
+  email;
   id;
+  role;
   constructor(model) {
     this.email = model.getDataValue("email");
     this.id = model.getDataValue("id");
+    this.role = model.getDataValue("role");
   }
 }
 

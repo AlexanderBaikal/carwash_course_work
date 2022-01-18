@@ -33,6 +33,78 @@ class OrgService {
     );
     return priceList;
   }
+  async getCompanyOrgs() {
+    const orgs = await Organization.findAll();
+    const orgDtos = orgs.map((org) => new OrgInfoDtoLite(org));
+    return orgDtos;
+  }
+
+  async updateOrgInfo(orgId, name, description, phones, addresses) {
+    await Organization.update(
+      {
+        name,
+        description,
+      },
+      {
+        where: { id: orgId },
+      }
+    );
+
+    let promises = [];
+    let ph;
+    let ad;
+    for (let phone of phones) {
+      if (phone.id === -1) {
+        ph = OrgPhone.create({
+          phone: phone.phone,
+          organizationId: orgId,
+        });
+      } else if (phone.deleted) {
+        ad = OrgPhone.destroy({
+          where: { id: phone.id },
+        });
+      } else {
+        ph = OrgPhone.update(
+          {
+            phone: phone.phone,
+          },
+          {
+            where: { organizationId: orgId, id: phone.id },
+          }
+        );
+      }
+      promises.push(ph);
+    }
+    for (let address of addresses) {
+      if (address.id === -1) {
+        console.log("ADDRESSCREATED");
+        ad = OrgAddress.create({
+          address: address.address,
+          organizationId: orgId,
+        });
+      } else if (address.deleted) {
+        console.log("ADDRESSDELETED");
+        ad = OrgAddress.destroy({
+          where: { id: address.id },
+        });
+      } else {
+        console.log("ADDRESSUPDATED");
+        ad = OrgAddress.update(
+          {
+            address: address.address,
+          },
+          {
+            where: { organizationId: orgId, id: address.id },
+          }
+        );
+      }
+
+      promises.push(ad);
+    }
+    const result = await Promise.all(promises);
+
+    return result;
+  }
 }
 
 module.exports = new OrgService();

@@ -5,7 +5,7 @@ const Reservation = require("../models/reservation");
 const ServiceReservation = require("../models/service-reservation");
 
 class ReservService {
-  async getUserReservations(userId, orgId) {
+  async getUserReservations(userId) {
     const reservations = await sequelize.query(
       'SELECT reservations.id, reservations.date, service_prices.price, services.name as sname, services.id as sid, organizations.name, cars.model, cars.brand, cars."regNumber"\
         FROM reservations\
@@ -16,10 +16,10 @@ class ReservService {
         JOIN service_prices ON service_prices."organizationId" = organizations.id\
         AND service_prices."transportTypeId" = cars."transportTypeId"\
         AND service_prices."serviceId" = services.id\
-        WHERE reservations."userId" = ? AND reservations."organizationId" = ?\
+        WHERE reservations."userId" = ?\
         ORDER BY reservations.date',
       {
-        replacements: [userId, orgId],
+        replacements: [userId],
         type: QueryTypes.SELECT,
       }
     );

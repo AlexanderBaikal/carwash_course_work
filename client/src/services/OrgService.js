@@ -12,7 +12,16 @@ export default class OrgService {
     return $api.get(`/organization/${orgId}/priceList/${transportTypeName}`);
   }
 
-  static async getCompanyOrgs(companyId) {
-    return $api.get(`/company/${companyId}/organizations`);
+  static async getCompanyOrgs() {
+    return $api.get(`/organizations`);
+  }
+
+  static async updateOrgInfo(orgId, name, description, phones, addresses) {
+    return $api.patch(`/organization/${orgId}/info`, {
+      name,
+      description,
+      phones,
+      addresses,
+    });
   }
 }

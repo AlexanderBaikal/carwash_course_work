@@ -5,6 +5,7 @@ import { reservationsReducer } from "./reservationReducer";
 import { organizationReducer } from "./organizationReducer";
 import { recordReducer } from "./recordReducer";
 import { modalReducer } from "./modalReducer";
+import { adminReducer } from "./adminReducer";
 
 const defaultState = {};
 
@@ -22,4 +23,5 @@ export default combineReducers({
   organization: organizationReducer,
   record: recordReducer,
   modal: modalReducer,
+  admin: adminReducer,
 });

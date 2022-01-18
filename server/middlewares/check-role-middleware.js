@@ -6,6 +6,7 @@ module.exports = function (role) {
     if (req.method == "OPTIONS") {
       next();
     }
+
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader) {
@@ -19,11 +20,13 @@ module.exports = function (role) {
       if (!userData) {
         return next(ApiError.UnauthorizedError());
       }
-      if (userData.role !== role) {
-        return res.status(403).json({ message: "Нет доступа" });
+      console.log(userData);
+      if (userData.role === role) {
+        req.user = userData;
+        next();
+      } else {
+        // return res.status(403).json({ message: "У вас недостаточно прав" });
       }
-      req.user = userData;
-      next();
     } catch (e) {
       return next(ApiError.UnauthorizedError());
     }

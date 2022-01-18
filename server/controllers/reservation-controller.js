@@ -6,12 +6,8 @@ const reservService = require("../service/reserv-service");
 class ReservationController {
   async getUserReservations(req, res, next) {
     try {
-      const orgId = req.params.orgId;
       const userId = req.params.userId;
-      const reservations = await reservService.getUserReservations(
-        userId,
-        orgId
-      );
+      const reservations = await reservService.getUserReservations(userId);
       return res.json(reservations);
     } catch (e) {
       next(e);

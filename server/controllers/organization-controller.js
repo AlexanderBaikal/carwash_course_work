@@ -55,6 +55,30 @@ class OrgController {
       next(e);
     }
   }
+  async getCompanyOrgs(req, res, next) {
+    try {
+      const orgs = await orgService.getCompanyOrgs();
+      return res.json(orgs);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async updateOrgInfo(req, res, next) {
+    try {
+      const { name, description, phones, addresses } = req.body;
+      const { orgId } = req.params;
+      const info = await orgService.updateOrgInfo(
+        orgId,
+        name,
+        description,
+        phones,
+        addresses
+      );
+      return res.json(info);
+    } catch (e) {
+      next(e);
+    }
+  }
 }
 
 module.exports = new OrgController();

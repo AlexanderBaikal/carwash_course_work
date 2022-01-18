@@ -106,6 +106,25 @@ class UserController {
       next(e);
     }
   }
+  async updateUserRole(req, res, next) {
+    try {
+      const userId = req.params.userId;
+      const role = req.body.role;
+      const userData = await userService.updateUserRole(userId, role);
+      return res.json(userData);
+    } catch (e) {
+      next(e);
+    }
+  }
+  async getUserInfo(req, res, next) {
+    try {
+      const userId = req.params.id;
+      const userData = await userService.getUserInfo(userId);
+      return res.json(userData);
+    } catch (e) {
+      next(e);
+    }
+  }
 }
 
 module.exports = new UserController();

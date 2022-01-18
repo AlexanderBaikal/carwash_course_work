@@ -1,5 +1,6 @@
 const ApiError = require("../exceptions/api-error");
 const tokenService = require("../service/token-service");
+const checkRoleMiddleware = require("./check-role-middleware");
 
 module.exports = function (getId = (req) => req.params.id) {
   return function (req, res, next) {
@@ -19,7 +20,7 @@ module.exports = function (getId = (req) => req.params.id) {
       if (!userData) {
         return next(ApiError.UnauthorizedError());
       }
-      if (userData.id != getId(req)) {
+      if (userData.id != getId(req) && userData.role != "ADMIN") {
         // not !==
         return res.status(403).json({ message: "Нет доступа" });
       }

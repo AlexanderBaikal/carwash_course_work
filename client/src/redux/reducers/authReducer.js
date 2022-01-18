@@ -48,11 +48,20 @@ export const authReducer = (state = defaultState, action) => {
         error: false,
       };
 
-    case LOGIN_SUCCESS:
-    case REGISTER_SUCCESS:
     case ADD_TRANSPORT_SUCCESS:
     case UPDATE_TRANSPORT_SUCCESS:
     case DELETE_TRANSPORT_SUCCESS:
+      return {
+        ...state,
+        user:
+          state.user?.id && action.payload?.id === state.user?.id
+            ? action.payload
+            : state.user,
+        loading: false,
+        error: false,
+      };
+    case LOGIN_SUCCESS:
+    case REGISTER_SUCCESS:
       return {
         ...state,
         user: action.payload,
