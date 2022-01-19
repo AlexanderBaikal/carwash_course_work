@@ -29,13 +29,6 @@ function App() {
   let navigate = useNavigate();
 
   useEffect(() => {
-    // if (user.role == "ADMIN") {
-    //   navigate("/admin", { replace: true });
-    // } else if (user.info) {
-    //   navigate("/", { replace: true });
-    // } else {
-    //   navigate("auth", { replace: true });
-    // }
     if (!user.info) navigate("auth", { replace: true });
     else navigate("/", { replace: true });
   }, [user]);
@@ -46,37 +39,47 @@ function App() {
 
   return (
     <>
-      <div
-        style={{
-          width: "100%",
-          height: "40px",
-          backgroundColor: "#fff",
-          boxShadow: "0px 2px 1px -1px rgb(0 0 0 / 20%)",
-          justifyContent: "space-between",
-          display: "flex",
-        }}
-      >
-        <Button
-          onClick={() => {
-            dispatch(logOut());
+      {location.pathname !== "/auth" ? (
+        <div
+          style={{
+            width: "100%",
+            height: "30px",
+            backgroundColor: "#fff",
+            borderStyle: "solid",
+            borderColor: "#efefef",
+
+            borderBottomWidth: "1px",
+            borderTopWidth: "0px",
+            borderRightWidth: "0px",
+            borderLeftWidth: "0px",
+            display: "flex",
+            marginBottom: "20px",
+            paddingLeft: "10px",
           }}
         >
-          Выйти
-        </Button>
-        {user.role == "ADMIN" ? (
           <Button
+            style={{ marginRight: "10px" }}
             onClick={() => {
-              location.pathname === "/"
-                ? navigate("admin", { replace: true })
-                : navigate("/", { replace: true });
+              dispatch(logOut());
             }}
           >
-            {location.pathname === "/"
-              ? "Панель админа"
-              : "Панель пользователя"}
+            Выйти
           </Button>
-        ) : null}
-      </div>
+          {user.role == "ADMIN" ? (
+            <Button
+              onClick={() => {
+                location.pathname === "/"
+                  ? navigate("admin", { replace: true })
+                  : navigate("/", { replace: true });
+              }}
+            >
+              {location.pathname === "/"
+                ? "Панель админа"
+                : "Панель пользователя"}
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
 
       <div style={{ display: "flex", justifyContent: "center" }}>
         <Modal />

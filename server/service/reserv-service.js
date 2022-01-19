@@ -7,17 +7,7 @@ const ServiceReservation = require("../models/service-reservation");
 class ReservService {
   async getUserReservations(userId) {
     const reservations = await sequelize.query(
-      'SELECT reservations.id, reservations.date, service_prices.price, services.name as sname, services.id as sid, organizations.name, cars.model, cars.brand, cars."regNumber"\
-        FROM reservations\
-        JOIN organizations ON reservations."organizationId" = organizations.id \
-        JOIN cars ON reservations."carId" = cars.id\
-        LEFT OUTER JOIN service_reservations ON service_reservations."reservationId" = reservations.id\
-        LEFT OUTER JOIN services ON service_reservations."serviceId" = services.id\
-        JOIN service_prices ON service_prices."organizationId" = organizations.id\
-        AND service_prices."transportTypeId" = cars."transportTypeId"\
-        AND service_prices."serviceId" = services.id\
-        WHERE reservations."userId" = ?\
-        ORDER BY reservations.date',
+      "select * from get_user_reservations(?)",
       {
         replacements: [userId],
         type: QueryTypes.SELECT,
@@ -29,12 +19,7 @@ class ReservService {
   async getDayReservations(orgId, year, month, day) {
     // todo
     const reservations = await sequelize.query(
-      'SELECT EXTRACT(HOUR from date) as hour, EXTRACT(MINUTE from date) as minute\
-          FROM reservations \
-          WHERE EXTRACT(DAY from date) = ? AND \
-          EXTRACT(MONTH from date) = ? AND \
-          EXTRACT(YEAR from date) = ? AND\
-          "organizationId" = ?',
+      "select * from get_day_reservations(?,?,?,?)",
       {
         replacements: [day, month, year, orgId],
         type: QueryTypes.SELECT,

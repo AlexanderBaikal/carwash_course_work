@@ -37,7 +37,6 @@ const styles = {
   priceItem: {
     marginTop: "10px",
     marginBottom: "10px",
-    width: "100%",
     cursor: "pointer",
   },
   frame: {
@@ -79,6 +78,17 @@ const styles = {
     boxShadow: "0px 0px 0px 1px rgba(0, 0, 0, 0.2)",
     marginTop: "5px",
     marginBottom: "5px",
+  },
+  column: {
+    maxWidth: "300px",
+    minWidth: "300px",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    padding: "10px",
+    borderColor: "rgba(25, 118, 210, 0.08)",
+    marginRight: "10px",
+    marginLeft: "10px",
+    borderRadius: "10px",
   },
 };
 const getCarInfo = (item) => {
@@ -176,12 +186,19 @@ const Home = () => {
   const [addTransport, setAddTransport] = useState(false);
   const [editProfile, setEditProfile] = useState(false);
   const [editTransportId, setEditTransportId] = useState(-1);
-  const [selectedCarIndex, setSelectedCarIndex] = useState(0);
+  const [selectedCarIndex, setSelectedCarIndex] = useState(
+    companyOrgs?.[0]?.id || 0
+  );
   const [selectedOrgIndex, setSelectedOrgIndex] = useState(0);
 
   useEffect(() => {
-    dispatch(getPriceList(1, user?.cars?.[selectedCarIndex]?.transportType));
-  }, [selectedCarIndex]);
+    dispatch(
+      getPriceList(
+        companyOrgs[selectedOrgIndex]?.id,
+        user?.cars?.[selectedCarIndex]?.transportType
+      )
+    );
+  }, [selectedCarIndex, selectedOrgIndex, companyOrgs]);
 
   const [calendarray, setCalendarray] = useState(getCalendarray());
   const [selectedDay, setSelectedDay] = useState(
@@ -254,12 +271,12 @@ const Home = () => {
         width: "100%",
       }}
     >
-      <div style={{ width: "30vw" }}>
+      <div style={styles.column}>
         <img
           style={{
             width: "100%",
-            borderRadius: "10px",
-            maxHeight: "200px",
+            borderRadius: "5px",
+            maxHeight: "150px",
             objectFit: "cover",
           }}
           src={info.imageUrl}
@@ -267,6 +284,7 @@ const Home = () => {
         <Typography
           style={{ marginTop: "10px", marginBottom: "10px" }}
           variant="h5"
+          color="secondary"
         >
           {info.name}
         </Typography>
@@ -278,11 +296,26 @@ const Home = () => {
             <Typography key={idx}>{item.address}</Typography>
           ))}
         </div>
-        <div style={{ marginTop: "10px", marginBottom: "10px" }}>
+        <div
+          style={{
+            marginTop: "10px",
+            marginBottom: "15px",
+            borderTopWidth: 0,
+            borderLeftWidth: 0,
+            borderRightWidth: 0,
+            borderBottomWidth: "1px",
+            borderStyle: "dashed",
+            borderColor: "#efefef",
+            paddingBottom: "15px",
+          }}
+        >
           {info?.phones?.map((item, idx) => (
             <Typography key={idx}>{item.phone}</Typography>
           ))}
         </div>
+        <Typography variant="h5" color="secondary">
+          {"Активные заказы"}
+        </Typography>
         <div
           style={{
             display: "flex",
@@ -291,37 +324,44 @@ const Home = () => {
             width: "100%",
           }}
         >
-          <Typography style={styles.mv} variant="h5">
-            {"Активные заказы"}
-          </Typography>
           {!reservations?.length ? (
             <Typography>{"У вас пока нет активных заказов"}</Typography>
           ) : null}
           <div style={{ width: "100%" }}>
             {reservations?.map((item, idx) => (
-              <div style={{ marginTop: "20px", marginBottom: "20px" }}>
-                <Card key={item.id}>
-                  <CardContent>
-                    <Typography>{item.sname}</Typography>
-                    <Typography>{item.price + " рублей"}</Typography>
-                    <Typography>{item.name}</Typography>
-                    <Typography>{getDate(item.date)}</Typography>
-                    <Typography>{getCarInfo(item)}</Typography>
-                    <Button
-                      color="warning"
-                      style={{ padding: 0, marginTop: "10px" }}
-                      onClick={() => removeReservation(item.id)}
-                    >
-                      Удалить
-                    </Button>
-                  </CardContent>
-                </Card>
+              <div
+                style={{
+                  marginTop: "20px",
+                  marginBottom: "20px",
+                  borderStyle: "solid",
+                  borderWidth: "1px",
+                  borderColor: "#efefef",
+                  padding: "20px",
+                  borderRadius: "5px",
+                }}
+              >
+                <Typography style={{ fontWeight: 600, marginBottom: "10px" }}>
+                  {item.sname}
+                </Typography>
+                <Typography style={styles.mv}>
+                  {item.price + " рублей"}
+                </Typography>
+                <Typography>{item.name}</Typography>
+                <Typography>{getDate(item.date)}</Typography>
+                <Typography>{getCarInfo(item)}</Typography>
+                <Button
+                  color="warning"
+                  style={{ padding: 0, marginTop: "10px" }}
+                  onClick={() => removeReservation(item.id)}
+                >
+                  Удалить
+                </Button>
               </div>
             ))}
           </div>
         </div>
       </div>
-      <div style={{ width: "30vw" }}>
+      <div style={styles.column}>
         <div
           style={{
             display: "flex",
@@ -329,7 +369,7 @@ const Home = () => {
             alignItems: "center",
           }}
         >
-          <Typography style={styles.mv} variant="h5">
+          <Typography style={styles.mv} variant="h5" color="secondary">
             Записаться на услуги
           </Typography>
           <Typography style={styles.mv}>
@@ -356,8 +396,21 @@ const Home = () => {
           </Select>
           <Typography style={styles.mv}>Выберите услуги из списка</Typography>
           {priceList.map((item, idx) => (
-            <Card
-              style={styles.priceItem}
+            <div
+              style={{
+                ...styles.priceItem,
+                width: "100%",
+                marginTop: "20px",
+                marginBottom: "20px",
+                borderStyle: "solid",
+                borderWidth: "1px",
+                borderColor: "#efefef",
+                paddingTop: "20px",
+                paddingBottom: "20px",
+                borderRadius: "5px",
+                display: "flex",
+                alignItems: "center",
+              }}
               onClick={() => {
                 dispatch(
                   setSelectedServices(
@@ -368,38 +421,30 @@ const Home = () => {
                 );
               }}
             >
-              <CardContent style={{ display: "flex", alignItems: "center" }}>
-                {selectedServices.includes(item.id) ? (
-                  <img
-                    style={{
-                      width: "40px",
-                      height: "40px",
-                      marginRight: "20px",
-                    }}
-                    src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Check_green_icon.svg/1200px-Check_green_icon.svg.png"
-                  ></img>
-                ) : (
-                  <div
-                    style={{
-                      width: "40px",
-                      height: "40px",
-                      marginRight: "20px",
-                    }}
-                  ></div>
-                )}
-                <div>
-                  <Typography>{item.name}</Typography>
-                  <Typography>{item.price + " рублей"}</Typography>
-                </div>
-              </CardContent>
-            </Card>
+              <img
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  marginRight: "20px",
+                  marginLeft: "20px",
+                  opacity: selectedServices.includes(item.id) ? 1 : 0.1,
+                }}
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Check_green_icon.svg/1200px-Check_green_icon.svg.png"
+              ></img>
+              <div>
+                <Typography>{item.name}</Typography>
+                <Typography>{item.price + " рублей"}</Typography>
+              </div>
+            </div>
           ))}
 
           <Typography style={styles.mv}>Выберите Дату</Typography>
           <div
             style={{
               display: "flex",
-              overflowX: "scroll",
+              // overflowX: "scroll",
+              flexWrap: "wrap",
+              justifyContent: "center",
               width: "100%",
               ...styles.mv,
             }}
@@ -455,8 +500,10 @@ const Home = () => {
           <div
             style={{
               display: "flex",
-              overflowX: "scroll",
+              // overflowX: "scroll",
+              flexWrap: "wrap",
               width: "100%",
+              justifyContent: "center",
               ...styles.mv,
             }}
           >
@@ -513,7 +560,7 @@ const Home = () => {
           </Button>
         </div>
       </div>
-      <div style={{ width: "30vw" }}>
+      <div style={styles.column}>
         <div
           style={{
             display: "flex",
@@ -521,7 +568,7 @@ const Home = () => {
             alignItems: "center",
           }}
         >
-          <Typography style={styles.mv} variant="h5">
+          <Typography style={styles.mv} variant="h5" color="secondary">
             {"Мой профиль"}
           </Typography>
           <Typography style={styles.mv}>
@@ -551,7 +598,7 @@ const Home = () => {
               setEditProfile={setEditProfile}
             />
           ) : null}
-          <Typography style={styles.mv} variant="h5">
+          <Typography style={styles.mv} variant="h5" color="secondary">
             {"Мой транспорт"}
           </Typography>
           {!user?.cars?.length ? (
@@ -559,9 +606,21 @@ const Home = () => {
           ) : null}
           {user?.cars?.map((item, idx) => (
             <>
-              <Card key={item.id} style={{ ...styles.mv, width: "100%" }}>
-                <CardContent>
-                  <Typography>{getCarInfo(item)}</Typography>
+              <div
+                key={item.id}
+                style={{
+                  ...styles.mv,
+                  width: "calc(100% - 40px)",
+                  borderStyle: "solid",
+                  borderWidth: "1px",
+                  borderColor: "#efefef",
+                  padding: "20px",
+                  paddingBottom: "10px",
+                  borderRadius: "5px",
+                }}
+              >
+                <Typography>{getCarInfo(item)}</Typography>
+                <div style={{ marginTop: "10px" }}>
                   <Button
                     onClick={() => {
                       if (editTransportId !== idx) {
@@ -586,8 +645,8 @@ const Home = () => {
                   >
                     Удалить
                   </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
               {editTransportId === idx ? (
                 <TransportForm
                   initBrand={item.brand}

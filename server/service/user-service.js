@@ -79,15 +79,10 @@ class UserService {
     if (!user) {
       throw Error("Пользователь не найден");
     } else {
-      cars = await sequelize.query(
-        'SELECT cars.id, cars.brand, cars.model, cars."regNumber", transport_types.name as "transportType"\
-        FROM cars JOIN transport_types ON cars."transportTypeId" = transport_types.id\
-                WHERE cars."userId" = ?',
-        {
-          replacements: [user.id],
-          type: QueryTypes.SELECT,
-        }
-      );
+      cars = await sequelize.query("select * from get_user_transport(?)", {
+        replacements: [user.id],
+        type: QueryTypes.SELECT,
+      });
     }
 
     const userDto = new UserDto(user, cars); // id, phone, info, cars

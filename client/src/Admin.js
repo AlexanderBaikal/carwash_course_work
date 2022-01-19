@@ -82,6 +82,17 @@ const styles = {
   pressable: {
     cursor: "pointer",
   },
+  column: {
+    maxWidth: "400px",
+    minWidth: "300px",
+    borderWidth: "1px",
+    borderStyle: "solid",
+    padding: "10px",
+    borderColor: "rgba(25, 118, 210, 0.08)",
+    marginRight: "10px",
+    marginLeft: "10px",
+    borderRadius: "10px",
+  },
 };
 const getCarInfo = (item) => {
   return item.brand + " " + item.model + " " + item.regNumber;
@@ -348,25 +359,27 @@ const Admin = () => {
         width: "100%",
       }}
     >
-      <div style={{ width: "30vw" }}>
+      <div style={styles.column}>
         <div style={{ width: "100%" }}>
           <Typography style={styles.mv} color="secondary" variant="h5">
             {"Информация"}
           </Typography>
           {companyOrgs.map((item, idx) => (
-            <Card
+            <div
               style={{
                 ...styles.mv,
                 ...styles.pressable,
                 backgroundColor:
                   selectedOrgId === idx ? "rgba(25, 118, 210, 0.08)" : "#fff",
+                borderStyle: "solid",
+                borderColor: "#efefef",
+                borderWidth: "1px",
+                padding: "20px",
               }}
               onClick={() => setSelectedOrgId(idx)}
             >
-              <CardContent>
-                <Typography>{item.name}</Typography>
-              </CardContent>
-            </Card>
+              <Typography>{item.name}</Typography>
+            </div>
           ))}
           {selectedOrgId !== -1 ? (
             <>
@@ -596,7 +609,7 @@ const Admin = () => {
           ) : null}
         </div>
       </div>
-      <div style={{ width: "30vw" }}>
+      <div style={styles.column}>
         <div>
           <Typography style={styles.mv} variant="h5" color="secondary">
             Пользователи
@@ -622,14 +635,14 @@ const Admin = () => {
                 <Typography>{item.email}</Typography>
                 <Typography>{item.role}</Typography>
                 <Button
-                  style={{ padding: 0 }}
+                  style={{ padding: 0, marginRight: "10px" }}
                   onClick={() => onShowMoreClick(idx)}
                 >
                   {"Подробнее"}
                 </Button>
                 {item.role === "USER" ? (
                   <Button
-                    style={{ padding: 0, marginLeft: "20px" }}
+                    style={{ padding: 0 }}
                     onClick={() => onUpdateRoleClick(item.id, item.role)}
                   >
                     {"Сделать админом"}
@@ -641,7 +654,7 @@ const Admin = () => {
         </div>
       </div>
 
-      <div style={{ width: "30vw" }}>
+      <div style={styles.column}>
         <Typography style={styles.mv} color="secondary" variant="h5">
           {"Профиль"}
         </Typography>
@@ -680,35 +693,43 @@ const Admin = () => {
             ) : null}
             {editableUser?.cars?.map((item, idx) => (
               <>
-                <Card key={item.id} style={{ ...styles.mv, width: "100%" }}>
-                  <CardContent>
-                    <Typography>{getCarInfo(item)}</Typography>
-                    <Button
-                      onClick={() => {
-                        if (editTransportId !== idx) {
-                          setEditTransportId(idx);
-                        } else setEditTransportId(-1);
-                      }}
-                      color="info"
-                      style={{ padding: 0 }}
-                    >
-                      Редактировать
-                    </Button>
-                    <Button
-                      color="warning"
-                      onClick={() => {
-                        dispatch(
-                          deleteTransport({
-                            carId: item.id,
-                            userId: editableUser?.id,
-                          })
-                        );
-                      }}
-                    >
-                      Удалить
-                    </Button>
-                  </CardContent>
-                </Card>
+                <div
+                  key={item.id}
+                  style={{
+                    ...styles.mv,
+                    width: "100%",
+                    borderStyle: "solid",
+                    borderColor: "#efefef",
+                    borderWidth: "1px",
+                    padding: "20px",
+                  }}
+                >
+                  <Typography>{getCarInfo(item)}</Typography>
+                  <Button
+                    onClick={() => {
+                      if (editTransportId !== idx) {
+                        setEditTransportId(idx);
+                      } else setEditTransportId(-1);
+                    }}
+                    color="info"
+                    style={{ padding: 0 }}
+                  >
+                    Редактировать
+                  </Button>
+                  <Button
+                    color="warning"
+                    onClick={() => {
+                      dispatch(
+                        deleteTransport({
+                          carId: item.id,
+                          userId: editableUser?.id,
+                        })
+                      );
+                    }}
+                  >
+                    Удалить
+                  </Button>
+                </div>
                 {editTransportId === idx ? (
                   <TransportForm
                     initBrand={item.brand}
@@ -733,22 +754,28 @@ const Admin = () => {
             <div style={{ width: "100%" }}>
               {reservations?.map((item, idx) => (
                 <div style={{ marginTop: "20px", marginBottom: "20px" }}>
-                  <Card key={item.id}>
-                    <CardContent>
-                      <Typography>{item.sname}</Typography>
-                      <Typography>{item.price + " рублей"}</Typography>
-                      <Typography>{item.name}</Typography>
-                      <Typography>{getDate(item.date)}</Typography>
-                      <Typography>{getCarInfo(item)}</Typography>
-                      <Button
-                        color="warning"
-                        style={{ padding: 0, marginTop: "10px" }}
-                        onClick={() => removeReservation(item.id)}
-                      >
-                        Удалить
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  <div
+                    style={{
+                      borderStyle: "solid",
+                      borderWidth: "1px",
+                      borderColor: "#efefef",
+                      padding: "20px",
+                    }}
+                    key={item.id}
+                  >
+                    <Typography>{item.sname}</Typography>
+                    <Typography>{item.price + " рублей"}</Typography>
+                    <Typography>{item.name}</Typography>
+                    <Typography>{getDate(item.date)}</Typography>
+                    <Typography>{getCarInfo(item)}</Typography>
+                    <Button
+                      color="warning"
+                      style={{ padding: 0, marginTop: "10px" }}
+                      onClick={() => removeReservation(item.id)}
+                    >
+                      Удалить
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -788,8 +815,15 @@ const Admin = () => {
                 Выберите услуги из списка
               </Typography>
               {priceList.map((item, idx) => (
-                <Card
-                  style={styles.priceItem}
+                <div
+                  style={{
+                    ...styles.priceItem,
+                    borderStyle: "solid",
+                    borderWidth: "1px",
+                    borderColor: "#efefef",
+                    padding: "20px",
+                    width: "calc(100% - 40px)",
+                  }}
                   onClick={() => {
                     dispatch(
                       setSelectedServices(
@@ -800,41 +834,32 @@ const Admin = () => {
                     );
                   }}
                 >
-                  <CardContent
-                    style={{ display: "flex", alignItems: "center" }}
-                  >
-                    {selectedServices.includes(item.id) ? (
-                      <img
-                        style={{
-                          width: "40px",
-                          height: "40px",
-                          marginRight: "20px",
-                        }}
-                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Check_green_icon.svg/1200px-Check_green_icon.svg.png"
-                      ></img>
-                    ) : (
-                      <div
-                        style={{
-                          width: "40px",
-                          height: "40px",
-                          marginRight: "20px",
-                        }}
-                      ></div>
-                    )}
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <img
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        marginRight: "20px",
+                        opacity: selectedServices.includes(item.id) ? 1 : 0.1,
+                      }}
+                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Check_green_icon.svg/1200px-Check_green_icon.svg.png"
+                    ></img>
+
                     <div>
                       <Typography>{item.name}</Typography>
                       <Typography>{item.price + " рублей"}</Typography>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
 
               <Typography style={styles.mv}>Выберите Дату</Typography>
               <div
                 style={{
                   display: "flex",
-                  overflowX: "scroll",
                   width: "100%",
+                  flexWrap: "wrap",
+                  justifyContent: "center",
                   ...styles.mv,
                 }}
               >
@@ -889,7 +914,8 @@ const Admin = () => {
               <div
                 style={{
                   display: "flex",
-                  overflowX: "scroll",
+                  flexWrap: "wrap",
+                  justifyContent: "center",
                   width: "100%",
                   ...styles.mv,
                 }}

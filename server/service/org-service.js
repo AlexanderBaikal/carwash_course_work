@@ -22,10 +22,7 @@ class OrgService {
   //todo date
   async getPriceList(orgId, transportTypeName) {
     const priceList = await sequelize.query(
-      'SELECT services.id, services.name, services.description, service_prices.price\
-      FROM services JOIN service_prices ON service_prices."serviceId" = services.id\
-              WHERE service_prices."organizationId" = ? \
-              AND service_prices."transportTypeId" IN (SELECT id FROM transport_types WHERE name = ?)',
+      "select * from get_price_list(?,?)",
       {
         replacements: [orgId, transportTypeName],
         type: QueryTypes.SELECT,
